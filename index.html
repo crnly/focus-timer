@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fokus-Timer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="timer">
+    <h1>Zeit für Fokus</h1>
+
+    <!-- Zeitwahl: data-minutes sagt JavaScript, wie viele Minuten der Button bedeutet -->
+    <div class="durations" role="group" aria-label="Dauer wählen">
+      <button class="duration" data-minutes="5" aria-pressed="false">5 Minuten</button>
+      <button class="duration" data-minutes="25" aria-pressed="true">25 Minuten</button>
+    </div>
+
+    <!-- Hier zeigt JavaScript die verbleibende Zeit an -->
+    <div id="time" class="time">25:00</div>
+
+    <div class="buttons">
+      <button id="start">Start</button>
+      <button id="pause">Pause</button>
+      <button id="reset">Zurücksetzen</button>
+    </div>
+  </main>
+
+  <!-- Das Skript steht am Ende, damit alle Elemente oben schon geladen sind -->
+  <script src="script.js"></script>
+</body>
+</html>
