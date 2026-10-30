@@ -86,7 +86,8 @@ test('main entry point references existing local scripts, styles and images', ()
   assert.equal(new Set(ids).size, ids.length);
   for (const [, reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     assert.ok(!reference.startsWith('/'), `Use a project-relative path: ${reference}`);
-    assert.ok(fs.existsSync(path.join(root, reference)), `Missing asset: ${reference}`);
+    const file = reference.split(/[?#]/)[0];
+    assert.ok(fs.existsSync(path.join(root, file)), `Missing asset: ${reference}`);
   }
   const script = fs.readFileSync(path.join(root, 'script.js'), 'utf8');
   for (const [, id] of script.matchAll(/\$\('([^']+)'\)/g)) assert.ok(ids.includes(id), `Missing DOM id: ${id}`);
