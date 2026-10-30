@@ -57,7 +57,7 @@ Die Zieleingabe ist auf vier sichtbare Zeilen begrenzt, ohne Warnhinweis.
 - Die veröffentlichte Browser-Version ist bei 1280 × 720 einschließlich eines
   vollständigen 1 + 1-Zyklus geprüft. Weitere Browser und mobile Fenstergrößen
   stehen noch aus.
-- Die vorhandenen 28 Tests und Syntaxprüfungen laufen über GitHub Actions.
+- Die vorhandenen 30 Tests und Syntaxprüfungen laufen über GitHub Actions.
 - Eine spätere installierbare Web-App mit Manifest und Offline-Cache prüfen.
 - TypeScript oder Vite erst ergänzen, wenn sie für den Umfang einen konkreten Nutzen bieten.
 - Bei der späteren Speicherung Wiederaufnahme, Uhrzeitänderungen, Reset,

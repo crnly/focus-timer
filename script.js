@@ -2,6 +2,41 @@
 const $ = (id) => document.getElementById(id);
 const cycle = new FocusCycle();
 let sessionGoal = '';
+let alarmContext;
+
+function enableAlarm() {
+  try {
+    const Audio = globalThis.AudioContext || globalThis.webkitAudioContext;
+    if (!Audio) return;
+    if (!alarmContext || alarmContext.state === 'closed') alarmContext = new Audio();
+    // Unlock audio during the user's Play click, without delaying the timer.
+    alarmContext.resume().catch(() => {});
+  } catch {
+    // Audio availability must never prevent a focus session from starting.
+  }
+}
+
+function playAlarm() {
+  if (!alarmContext || alarmContext.state !== 'running') return;
+  try {
+    const tone = alarmContext.createOscillator();
+    const volume = alarmContext.createGain();
+    const now = alarmContext.currentTime;
+    tone.type = 'sine';
+    tone.frequency.value = 880;
+    volume.gain.setValueAtTime(0, now);
+    volume.gain.linearRampToValueAtTime(0.08, now + 0.01);
+    volume.gain.setValueAtTime(0.08, now + 0.04);
+    volume.gain.linearRampToValueAtTime(0, now + 0.22);
+    tone.connect(volume);
+    volume.connect(alarmContext.destination);
+    tone.onended = () => { tone.disconnect(); volume.disconnect(); };
+    tone.start(now);
+    tone.stop(now + 0.23);
+  } catch {
+    // A blocked or interrupted sound must not interrupt the cycle.
+  }
+}
 
 function setGoalError(text = '') {
   $('goal-error').textContent = text;
@@ -52,24 +87,24 @@ function renderControls() {
   renderClock();
 }
 
+function handleTransition(transition) {
+  setGoalError();
+  renderControls();
+  playAlarm();
+  if (transition === 'cycle-ended') $('goal').focus({ preventScroll: true });
+}
+
 function tick() {
   const transition = cycle.update();
-  if (transition) {
-    setGoalError();
-    renderControls();
-    if (transition === 'cycle-ended') $('goal').focus({ preventScroll: true });
-  } else {
-    renderClock();
-  }
+  if (transition) handleTransition(transition);
+  else renderClock();
 }
 
 $('play').addEventListener('click', () => {
   // A click at the phase boundary must not start another focus session.
   const transition = cycle.update();
   if (transition) {
-    setGoalError();
-    renderControls();
-    if (transition === 'cycle-ended') $('goal').focus({ preventScroll: true });
+    handleTransition(transition);
     return;
   }
   if (cycle.active) return;
@@ -79,6 +114,7 @@ $('play').addEventListener('click', () => {
     return;
   }
   setGoalError();
+  enableAlarm();
   if (cycle.start()) {
     sessionGoal = $('goal').value;
     $('goal').value = '';

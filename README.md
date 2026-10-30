@@ -21,6 +21,10 @@ Die Oberfläche ist englischsprachig. Es gibt keine Pause-, Reset- oder
 Skip-Buttons, keine Konten und keinen Sitzungsverlauf. Das ruhige Design
 verbindet dunkles Grün, eine feste abgerundete Kontur und ASCII-Kiefern.
 
+Am Ende der Fokusphase und der Pause erklingt jeweils ein kurzer, leiser Piepton.
+Er wird direkt per Web Audio erzeugt; Audiodateien und Bibliotheken sind nicht nötig.
+Der Play-Klick aktiviert den Ton. Blockiert der Browser Audio, läuft der Timer weiter.
+
 ## Lokal öffnen
 
 Die Datei `index.html` direkt im Browser öffnen. Eine Paketinstallation,

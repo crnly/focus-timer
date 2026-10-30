@@ -56,6 +56,11 @@ Software and AI insights are omitted from this view.
 The rounded rectangular outline stays complete throughout the cycle.
 Only the numeric countdown shows the time remaining.
 
+A quiet 880 Hz sine beep (230 ms, with a short fade in and out) signals each
+phase boundary once. The existing Play click unlocks Web Audio; there are no
+audio files, external audio services or new interface controls. If audio is
+unavailable or suspended by the browser, the timer continues without the sound.
+
 ## Design
 
 The design follows the portfolio: dark green, sage accents (`#9bbda2`), system
@@ -96,10 +101,11 @@ node --check script.js
 node --check cycle.js
 ```
 
-28 tests cover countdowns, focus-break cycles and UI state: all profiles,
+30 tests cover countdowns, focus-break cycles and UI state: all profiles,
 automatic breaks, goals during the break, returning to an empty start view,
 manual restarts, delayed updates, repeated Play, keyboard profile selection,
-silent input overflow handling, asset references and the previous preview redirect.
+silent input overflow handling, asset references, the previous preview redirect,
+one beep per phase transition and continued operation when audio is blocked.
 The generic countdown tests also cover internal operations that are not
 available as interface controls.
 

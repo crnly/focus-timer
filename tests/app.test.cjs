@@ -10,7 +10,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 // A small DOM adapter exercises the real UI script and clock together.
 // Layout, native browser input and rendered line wrapping still need browser QA.
-function app() {
+function app({ AudioContext } = {}) {
   let now = 0;
   let tick;
   let document;
@@ -55,6 +55,7 @@ function app() {
   Object.defineProperty(select, 'selectedOptions', { get: () => [select.options[select.selectedIndex]] });
   const context = vm.createContext({
     document, Event, Date: { now: () => now },
+    ...(AudioContext ? { AudioContext } : {}),
     setInterval(fn) { tick = fn; },
   });
   for (const file of ['timer.js', 'cycle.js', 'script.js']) {
@@ -178,4 +179,53 @@ test('the previous prototype entry redirects to the main browser app', () => {
   const redirect = fs.readFileSync(path.join(root, 'prototype', 'index.html'), 'utf8');
   assert.match(redirect, /url=\.\.\/index\.html/);
   assert.match(redirect, /location\.replace\('\.\.\/index\.html'/);
+});
+
+test('one beep sounds at each phase end and repeated updates do not repeat it', () => {
+  let beeps = 0;
+  let unlocked = 0;
+  class AudioContext {
+    state = 'running';
+    currentTime = 0;
+    destination = {};
+    resume() { unlocked++; return Promise.resolve(); }
+    createOscillator() {
+      return { frequency: {}, connect() {}, disconnect() {}, start() { beeps++; }, stop() {} };
+    }
+    createGain() {
+      return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {} }, connect() {}, disconnect() {} };
+    }
+  }
+  const ui = app({ AudioContext });
+  assert.equal(unlocked, 0);
+  ui.enter('Complete the draft');
+  ui.event(ui.get('play'), 'click');
+  assert.equal(unlocked, 1);
+  assert.equal(beeps, 0);
+  ui.advance(25 * 60_000);
+  assert.equal(beeps, 1);
+  ui.advance(1_000);
+  assert.equal(beeps, 1);
+  ui.advance(5 * 60_000);
+  assert.equal(beeps, 2);
+  ui.advance(1_000);
+  assert.equal(beeps, 2);
+  assert.equal(ui.get('setup').hidden, false);
+});
+
+test('a rejected audio unlock does not interrupt the timer or produce an unhandled rejection', async () => {
+  class AudioContext {
+    state = 'suspended';
+    resume() { return Promise.reject(new Error('Audio blocked')); }
+  }
+  const ui = app({ AudioContext });
+  ui.enter('Complete the draft');
+  ui.event(ui.get('play'), 'click');
+  await Promise.resolve();
+  assert.equal(ui.get('time').textContent, '25:00');
+  ui.advance(25 * 60_000);
+  assert.equal(ui.get('time').textContent, '05:00');
+  ui.advance(5 * 60_000);
+  assert.equal(ui.get('setup').hidden, false);
+  assert.equal(ui.get('play').disabled, true);
 });
