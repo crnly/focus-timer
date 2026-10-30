@@ -56,8 +56,9 @@ Die Zieleingabe ist auf vier sichtbare Zeilen begrenzt, ohne Warnhinweis.
 
 ## Nächste technische Schritte
 
-- Die neue Einfeldansicht im Browser prüfen; bisher scheitert die automatische
-  Vorschau an der Ablehnung lokaler Datei-URLs im Testbrowser.
+- Die veröffentlichte Browser-Version ist bei 1280 × 720 einschließlich eines
+  vollständigen 1 + 1-Zyklus geprüft. Weitere Browser und mobile Fenstergrößen
+  stehen noch aus.
 - Die vorhandenen 29 Tests und Syntaxprüfungen laufen über GitHub Actions.
 - Eine spätere installierbare Web-App mit Manifest und Offline-Cache prüfen.
 - TypeScript oder Vite erst ergänzen, wenn sie für den Umfang einen konkreten Nutzen bieten.

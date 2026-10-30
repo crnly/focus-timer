@@ -105,8 +105,12 @@ The generic countdown tests also cover internal operations that are not
 available as interface controls.
 
 JavaScript syntax, document references and `git diff --check` are checked.
-The current interface has not been visually verified in a browser: automatic
-browser approval previously rejected local file URLs. Earlier browser results
-apply to previous layouts.
+The published GitHub Pages version was checked in a browser on 2026-10-30
+at 1280 × 720: one-line instruction, the styled dropdown, four-line input,
+Play, automatic focus-to-break transition, centred multiline goals during
+the break and the empty start view after completion. The full 1 + 1 cycle
+ran against the real browser clock. The page fits this viewport without scrolling.
+The DOM-adapter tests do not replace layout checks; other browser engines and
+small/mobile windows have not yet been checked.
 
 [Research behind focus and break profiles](fokus-und-pausen-studien.md)
