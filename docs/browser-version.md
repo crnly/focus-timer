@@ -37,7 +37,6 @@ Then open the [local preview](http://127.0.0.1:4173).
 The default is **25 minutes of focus + 5 minutes of break**. Before each cycle,
 choose from **15 + 5, 20 + 5, 25 + 5, 30 + 10, 35 + 10, 40 + 10 and 50 + 10**.
 The profile selector disappears while the cycle runs and returns afterward.
-The temporary **1 + 1** profile allows testing a full cycle in two minutes.
 
 Play only starts a new focus session. It always uses the play symbol, is hidden
 throughout the active cycle and becomes available again after a new goal is
@@ -97,7 +96,7 @@ node --check script.js
 node --check cycle.js
 ```
 
-29 tests cover countdowns, focus-break cycles and UI state: all profiles,
+28 tests cover countdowns, focus-break cycles and UI state: all profiles,
 automatic breaks, goals during the break, returning to an empty start view,
 manual restarts, delayed updates, repeated Play, keyboard profile selection,
 silent input overflow handling, asset references and the previous preview redirect.

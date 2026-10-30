@@ -16,7 +16,6 @@ Ziele setzen, konzentriert arbeiten und anschließend eine automatische Pause ma
    beginnt erst, wenn ein neues Ziel eingegeben und Play gedrückt wird.
 
 Weitere Zeitprofile: **15 + 5, 20 + 5, 30 + 10, 35 + 10, 40 + 10, 50 + 10**.
-Für kurze Funktionstests gibt es **1 + 1**.
 
 Die Oberfläche ist englischsprachig. Es gibt keine Pause-, Reset- oder
 Skip-Buttons, keine Konten und keinen Sitzungsverlauf. Das ruhige Design

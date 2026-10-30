@@ -15,8 +15,6 @@ Die aktuelle Voreinstellung ist 25 + 5. Die Profile 15 + 5, 20 + 5, 25 + 5,
 30 + 10, 35 + 10, 40 + 10 und 50 + 10 sind vor jedem Zyklus auswählbar.
 [Forschung und Quellen](fokus-und-pausen-studien.md).
 
-Für Tests gibt es zusätzlich 1 + 1.
-
 Nach Ablauf des Fokus beginnt die Pause automatisch. Im oberen Drittel steht
 der kleinere Pausentimer; darunter erscheinen die ursprünglichen Ziele zentriert
 und mit ihren Zeilenumbrüchen. Danach werden die Ziele verworfen und das Feld kehrt zur
@@ -59,7 +57,7 @@ Die Zieleingabe ist auf vier sichtbare Zeilen begrenzt, ohne Warnhinweis.
 - Die veröffentlichte Browser-Version ist bei 1280 × 720 einschließlich eines
   vollständigen 1 + 1-Zyklus geprüft. Weitere Browser und mobile Fenstergrößen
   stehen noch aus.
-- Die vorhandenen 29 Tests und Syntaxprüfungen laufen über GitHub Actions.
+- Die vorhandenen 28 Tests und Syntaxprüfungen laufen über GitHub Actions.
 - Eine spätere installierbare Web-App mit Manifest und Offline-Cache prüfen.
 - TypeScript oder Vite erst ergänzen, wenn sie für den Umfang einen konkreten Nutzen bieten.
 - Bei der späteren Speicherung Wiederaufnahme, Uhrzeitänderungen, Reset,

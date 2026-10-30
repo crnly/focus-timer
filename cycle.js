@@ -4,7 +4,6 @@ const CycleTimer = typeof module !== 'undefined'
   : CountdownTimer;
 
 const FOCUS_PROFILES = Object.freeze([
-  [1, 1], // Short profile for trying the complete focus-break flow.
   [15, 5], [20, 5], [25, 5], [30, 10], [35, 10], [40, 10], [50, 10],
 ].map(([focusMinutes, breakMinutes]) => Object.freeze({
   id: `${focusMinutes}-${breakMinutes}`, focusMinutes, breakMinutes,

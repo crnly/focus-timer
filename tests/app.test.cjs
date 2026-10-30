@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { FOCUS_PROFILES } = require('../cycle.js');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -78,6 +79,9 @@ function app() {
 }
 
 test('main entry point references existing local scripts, styles and images', () => {
+  const optionIds = Array.from(html.matchAll(/<option value="([^"]+)"/g), match => match[1]);
+  assert.deepEqual(optionIds, FOCUS_PROFILES.map(profile => profile.id));
+  assert.ok(!optionIds.includes('1-1'));
   const ids = Array.from(html.matchAll(/\bid="([^"]+)"/g), match => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   for (const [, reference] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
@@ -88,36 +92,36 @@ test('main entry point references existing local scripts, styles and images', ()
   for (const [, id] of script.matchAll(/\$\('([^']+)'\)/g)) assert.ok(ids.includes(id), `Missing DOM id: ${id}`);
 });
 
-test('Play requires a goal and starts the chosen one-minute test profile', () => {
+test('Play requires a goal and starts the selected 40 + 10 profile', () => {
   const ui = app();
   assert.equal(ui.get('play').disabled, true);
   assert.equal(ui.get('time').textContent, '');
   ui.enter('   ');
   assert.equal(ui.get('play').disabled, true);
-  ui.choose('1-1');
+  ui.choose('40-10');
   ui.enter('Complete the draft');
   assert.equal(ui.get('play').disabled, false);
   ui.event(ui.get('play'), 'click');
-  assert.equal(ui.get('time').textContent, '01:00');
+  assert.equal(ui.get('time').textContent, '40:00');
   assert.equal(ui.get('setup').hidden, true);
   assert.equal(ui.get('timer-actions').hidden, true);
   assert.equal(ui.get('goal').value, '');
   assert.equal(ui.get('profile-trigger').disabled, true);
 });
 
-test('goals appear only during break and the empty start view returns afterward', () => {
+test('50 + 10 shows goals during break and returns to the empty start view', () => {
   const ui = app();
   const goal = 'Complete the draft\nReview <section> markup\nSend the update\nPlan tomorrow';
-  ui.choose('1-1');
+  ui.choose('50-10');
   ui.enter(goal);
   ui.event(ui.get('play'), 'click');
   assert.equal(ui.get('break-goals').hidden, true);
   assert.equal(ui.get('break-goal-text').textContent, '');
-  ui.advance(60_000);
-  assert.equal(ui.get('time').textContent, '01:00');
+  ui.advance(50 * 60_000);
+  assert.equal(ui.get('time').textContent, '10:00');
   assert.equal(ui.get('break-goals').hidden, false);
   assert.equal(ui.get('break-goal-text').textContent, goal);
-  ui.advance(60_000);
+  ui.advance(10 * 60_000);
   assert.equal(ui.get('break-goals').hidden, true);
   assert.equal(ui.get('break-goal-text').textContent, '');
   assert.equal(ui.get('setup').hidden, false);
@@ -128,9 +132,9 @@ test('goals appear only during break and the empty start view returns afterward'
   assert.equal(ui.document.activeElement, ui.get('goal'));
   ui.enter('A fresh goal');
   ui.event(ui.get('play'), 'click');
-  ui.advance(60_000);
+  ui.advance(50 * 60_000);
   assert.equal(ui.get('break-goal-text').textContent, 'A fresh goal');
-  ui.advance(180_000);
+  ui.advance(60 * 60_000);
   assert.equal(ui.get('break-goal-text').textContent, '');
   assert.equal(ui.get('setup').hidden, false);
 });
