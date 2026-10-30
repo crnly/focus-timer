@@ -1,32 +1,68 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fokus-Timer</title>
+  <meta name="theme-color" content="#0e1611">
+  <meta name="description" content="Set your goals, focus, and take a break. A quiet focus timer with pine trees and a simple rhythm.">
+  <title>Focus Timer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="timer">
-    <h1>Zeit für Fokus</h1>
-
-    <!-- Zeitwahl: data-minutes sagt JavaScript, wie viele Minuten der Button bedeutet -->
-    <div class="durations" role="group" aria-label="Dauer wählen">
-      <button class="duration" data-minutes="5" aria-pressed="false">5 Minuten</button>
-      <button class="duration" data-minutes="25" aria-pressed="true">25 Minuten</button>
-    </div>
-
-    <!-- Hier zeigt JavaScript die verbleibende Zeit an -->
-    <div id="time" class="time">25:00</div>
-
-    <div class="buttons">
-      <button id="start">Start</button>
-      <button id="pause">Pause</button>
-      <button id="reset">Zurücksetzen</button>
-    </div>
+  <main class="workspace" aria-label="Focus Timer">
+    <section id="timer-card" class="timer-card" data-stage="ready" aria-label="Focus timer">
+      <!-- Landscape version 05 from our Pine Trees collection.
+           ASCII adaptation after Hasegawa Tōhaku; provenance: assets/README.md. -->
+      <picture class="card-landscape" aria-hidden="true">
+        <img src="assets/pines-ma-05-desktop.png" width="1920" height="1080" alt="">
+      </picture>
+      <div id="setup" class="setup">
+        <div class="setup-header">
+          <label for="goal" class="setup-prompt">Set your goal and choose your focus + break times.</label>
+          <div id="profile-choice" class="duration-choice">
+            <select id="profile" aria-label="Focus and break duration">
+              <option value="1-1">1 + 1</option>
+              <option value="15-5">15 + 5</option>
+              <option value="20-5">20 + 5</option>
+              <option value="25-5" selected>25 + 5</option>
+              <option value="30-10">30 + 10</option>
+              <option value="35-10">35 + 10</option>
+              <option value="40-10">40 + 10</option>
+              <option value="50-10">50 + 10</option>
+            </select>
+            <button id="profile-trigger" class="profile-trigger" type="button" aria-label="Focus and break duration" aria-haspopup="listbox" aria-expanded="false" aria-controls="profile-options" hidden>
+              <span id="profile-value">25 + 5</span>
+              <span class="profile-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="profile-options" class="profile-options" role="listbox" aria-label="Focus and break duration" hidden></div>
+          </div>
+        </div>
+        <div id="goal-field" class="goal-field">
+          <div id="goal-input" class="goal-input" data-empty="true">
+            <textarea id="goal" rows="4" aria-describedby="goal-error"></textarea>
+            <span class="terminal-caret" aria-hidden="true"></span>
+          </div>
+          <p id="goal-error" class="goal-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <div id="clock-row" class="clock-row" hidden>
+        <span id="time" class="time" role="timer" aria-label="Remaining focus time"></span>
+        <span id="phase-status" class="timer-status" role="status"></span>
+      </div>
+      <section id="break-goals" class="break-goals" aria-label="Session goals" hidden>
+        <p id="break-goal-text" class="break-goal-text"></p>
+      </section>
+      <div id="timer-actions" class="timer-actions">
+        <button id="play" class="play-control" type="button" aria-label="Start focus" title="Start focus" disabled>
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+    </section>
   </main>
-
-  <!-- Das Skript steht am Ende, damit alle Elemente oben schon geladen sind -->
+  <script src="timer.js"></script>
+  <script src="cycle.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,81 +1,213 @@
-// Gewählte Dauer in Sekunden (am Anfang 25 Minuten)
-let selectedSeconds = 25 * 60;
+// One panel: focus -> automatic break -> manual restart.
+const $ = (id) => document.getElementById(id);
+const cycle = new FocusCycle();
+let sessionGoal = '';
 
-// Zustand des Timers
-let remainingSeconds = selectedSeconds;  // wie viele Sekunden noch übrig sind
-let intervalId = null;                   // null = Timer läuft gerade nicht
-
-// Elemente aus der HTML-Datei holen (über ihre id)
-const timeDisplay = document.getElementById('time');
-const startButton = document.getElementById('start');
-const pauseButton = document.getElementById('pause');
-const resetButton = document.getElementById('reset');
-// Alle Buttons der Zeitwahl (über ihre Klasse)
-const durationButtons = document.querySelectorAll('.duration');
-
-// Wandelt die Sekunden in "MM:SS" um und aktualisiert Anzeige und Tab-Titel
-function updateDisplay() {
-  const minutes = Math.floor(remainingSeconds / 60);  // ganze Minuten
-  const seconds = remainingSeconds % 60;              // Rest = Sekunden
-  // padStart(2, '0') macht aus "5" eine "05"
-  const formattedTime =
-    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-  timeDisplay.textContent = formattedTime;
-  document.title = formattedTime + ' – Fokus-Timer';
+function setGoalError(text = '') {
+  $('goal-error').textContent = text;
+  $('goal-error').hidden = !text;
+  $('goal').setAttribute('aria-invalid', String(Boolean(text)));
 }
 
-function startTimer() {
-  // Läuft der Timer schon, nichts tun (sonst würde er doppelt so schnell zählen)
-  // Ist die Zeit schon abgelaufen, ebenfalls nichts tun
-  if (intervalId !== null || remainingSeconds <= 0) {
+function formatTime(ms) {
+  const seconds = Math.max(0, Math.ceil(ms / 1000));
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+function renderClock() {
+  if (!cycle.active) {
+    $('time').textContent = '';
+    $('time').setAttribute('aria-label', 'Remaining focus time');
+    document.title = 'Focus Timer';
     return;
   }
-
-  // setInterval führt die Funktion alle 1000 Millisekunden (= 1 Sekunde) aus
-  intervalId = setInterval(function () {
-    remainingSeconds = remainingSeconds - 1;
-    updateDisplay();
-
-    if (remainingSeconds <= 0) {
-      pauseTimer();  // bei 00:00 anhalten
-    }
-  }, 1000);
+  const remaining = cycle.timer.remainingMs;
+  const label = cycle.phase === 'focus' ? 'Focus' : 'Break';
+  const time = formatTime(remaining);
+  $('time').textContent = time;
+  $('time').setAttribute('aria-label', `Remaining ${label.toLowerCase()} time: ${time}`);
+  document.title = `${time} · ${label} · Focus Timer`;
 }
 
-function pauseTimer() {
-  clearInterval(intervalId);  // stoppt das wiederholte Ausführen
-  intervalId = null;
+function renderControls() {
+  const isBreak = cycle.phase === 'break';
+  if (!cycle.active) sessionGoal = '';
+  $('timer-card').classList.toggle('break-card', isBreak);
+  $('timer-card').dataset.stage = cycle.active ? 'running' : 'ready';
+  $('timer-card').setAttribute('aria-label', isBreak ? 'Break timer' : 'Focus timer');
+  $('setup').hidden = cycle.active;
+  $('break-goals').hidden = !isBreak;
+  $('break-goal-text').textContent = isBreak ? sessionGoal : '';
+  $('clock-row').hidden = !cycle.active;
+  $('timer-actions').hidden = cycle.active;
+  $('goal').disabled = cycle.active;
+  $('goal-input').dataset.empty = String($('goal').value.length === 0);
+  $('profile').disabled = cycle.active;
+  $('profile-trigger').disabled = cycle.active;
+  syncProfilePicker();
+  if (cycle.active) closeProfilePicker();
+  $('play').disabled = cycle.active || !$('goal').value.trim();
+  $('play').title = cycle.active ? (isBreak ? 'Break in progress' : 'Focus in progress') : 'Start focus';
+  $('phase-status').textContent = cycle.notice;
+  renderClock();
 }
 
-// Setzt auf die zuletzt gewählte Dauer zurück
-function resetTimer() {
-  pauseTimer();
-  remainingSeconds = selectedSeconds;
-  updateDisplay();
+function tick() {
+  const transition = cycle.update();
+  if (transition) {
+    setGoalError();
+    renderControls();
+    if (transition === 'cycle-ended') $('goal').focus({ preventScroll: true });
+  } else {
+    renderClock();
+  }
 }
 
-// Wird aufgerufen, wenn ein Zeitwahl-Button geklickt wird
-function selectDuration(event) {
-  const button = event.currentTarget;
-  // data-minutes="5" steht in JavaScript als button.dataset.minutes bereit (als Text)
-  selectedSeconds = Number(button.dataset.minutes) * 60;
-
-  // Nur der geklickte Button gilt als gewählt
-  durationButtons.forEach(function (b) {
-    b.setAttribute('aria-pressed', b === button ? 'true' : 'false');
-  });
-
-  // Laufenden Timer stoppen und die neue Zeit anzeigen
-  resetTimer();
-}
-
-// Buttons mit den Funktionen verbinden
-startButton.addEventListener('click', startTimer);
-pauseButton.addEventListener('click', pauseTimer);
-resetButton.addEventListener('click', resetTimer);
-durationButtons.forEach(function (button) {
-  button.addEventListener('click', selectDuration);
+$('play').addEventListener('click', () => {
+  // A click at the phase boundary must not start another focus session.
+  const transition = cycle.update();
+  if (transition) {
+    setGoalError();
+    renderControls();
+    if (transition === 'cycle-ended') $('goal').focus({ preventScroll: true });
+    return;
+  }
+  if (cycle.active) return;
+  if (cycle.phase === 'focus' && cycle.timer.state === 'ready' && !$('goal').value.trim()) {
+    setGoalError('Please enter a short goal.');
+    $('goal').focus();
+    return;
+  }
+  setGoalError();
+  if (cycle.start()) {
+    sessionGoal = $('goal').value;
+    $('goal').value = '';
+  }
+  renderControls();
 });
 
-// Anzeige beim Laden einmal setzen
-updateDisplay();
+$('profile').addEventListener('change', () => {
+  if (cycle.active) { $('profile').value = cycle.profile.id; return; }
+  if (!FOCUS_PROFILES.some((profile) => profile.id === $('profile').value)) {
+    $('profile').value = cycle.profile.id;
+    return;
+  }
+  cycle.setProfile($('profile').value);
+  setGoalError();
+  renderControls();
+});
+
+// Keep the native select as the source of truth for the styled picker.
+const profileSelect = $('profile');
+const profileTrigger = $('profile-trigger');
+const profileOptions = $('profile-options');
+const profileItems = Array.from(profileSelect.options, (option) => {
+  const item = document.createElement('button');
+  item.type = 'button';
+  item.className = 'profile-option';
+  item.id = `profile-option-${option.value}`;
+  item.setAttribute('role', 'option');
+  item.tabIndex = -1;
+  item.dataset.value = option.value;
+  item.textContent = option.textContent;
+  item.addEventListener('click', () => {
+    if (cycle.active) return;
+    profileSelect.value = option.value;
+    profileSelect.dispatchEvent(new Event('change'));
+    closeProfilePicker(true);
+  });
+  profileOptions.append(item);
+  return item;
+});
+
+function syncProfilePicker() {
+  const selected = profileSelect.selectedOptions[0];
+  $('profile-value').textContent = selected.textContent;
+  profileTrigger.setAttribute('aria-label', `Focus and break duration: ${selected.textContent} minutes`);
+  profileItems.forEach((item) => item.setAttribute('aria-selected', String(item.dataset.value === selected.value)));
+}
+
+function openProfilePicker(index = profileSelect.selectedIndex) {
+  if (cycle.active) return;
+  profileOptions.hidden = false;
+  profileTrigger.setAttribute('aria-expanded', 'true');
+  profileItems[index].focus({ preventScroll: true });
+}
+
+function closeProfilePicker(restoreFocus = false) {
+  profileOptions.hidden = true;
+  profileTrigger.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) profileTrigger.focus({ preventScroll: true });
+}
+
+profileTrigger.addEventListener('click', () => {
+  if (profileOptions.hidden) openProfilePicker();
+  else closeProfilePicker();
+});
+profileTrigger.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    openProfilePicker();
+  }
+});
+profileOptions.addEventListener('keydown', (event) => {
+  const index = profileItems.indexOf(document.activeElement);
+  let next = index;
+  if (event.key === 'ArrowDown') next = (index + 1) % profileItems.length;
+  else if (event.key === 'ArrowUp') next = (index - 1 + profileItems.length) % profileItems.length;
+  else if (event.key === 'Home') next = 0;
+  else if (event.key === 'End') next = profileItems.length - 1;
+  else if (event.key === 'Escape') {
+    event.preventDefault();
+    closeProfilePicker(true);
+    return;
+  } else if (event.key === 'Tab') {
+    // Return to the trigger so Tab continues to the goal input in DOM order.
+    closeProfilePicker(true);
+    return;
+  } else return;
+  event.preventDefault();
+  profileItems[next].focus({ preventScroll: true });
+});
+document.addEventListener('pointerdown', (event) => {
+  if (!$('profile-choice').contains(event.target)) closeProfilePicker();
+});
+$('profile-choice').addEventListener('focusout', (event) => {
+  if (!$('profile-choice').contains(event.relatedTarget)) closeProfilePicker();
+});
+profileSelect.hidden = true;
+profileTrigger.hidden = false;
+
+const goalInput = $('goal');
+let previousGoal = { value: '', start: 0, end: 0 };
+
+function rememberGoal() {
+  previousGoal = { value: goalInput.value, start: goalInput.selectionStart, end: goalInput.selectionEnd };
+}
+
+function constrainGoal(event) {
+  if (event.isComposing) return;
+  if (goalInput.scrollHeight > goalInput.clientHeight + 1) {
+    goalInput.value = previousGoal.value;
+    goalInput.setSelectionRange(previousGoal.start, previousGoal.end);
+    goalInput.scrollTop = 0;
+    setGoalError();
+  } else {
+    rememberGoal();
+    setGoalError();
+  }
+  $('goal-input').dataset.empty = String(goalInput.value.length === 0);
+  $('play').disabled = cycle.active || !goalInput.value.trim();
+}
+
+goalInput.addEventListener('beforeinput', (event) => {
+  if (!event.isComposing) rememberGoal();
+});
+goalInput.addEventListener('compositionstart', rememberGoal);
+goalInput.addEventListener('compositionend', constrainGoal);
+goalInput.addEventListener('input', constrainGoal);
+
+document.addEventListener('visibilitychange', tick);
+setInterval(tick, 200);
+renderControls();
+$('goal').focus({ preventScroll: true });
