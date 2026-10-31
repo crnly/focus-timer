@@ -12,7 +12,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 // Layout, native browser input and rendered line wrapping still need browser QA.
 function app({ AudioContext, fetch } = {}) {
   let now = 0;
-  let tick;
+  let pendingTick = null;
+  let timerId = 0;
   let document;
   class Element extends EventTarget {
     constructor() {
@@ -53,11 +54,21 @@ function app({ AudioContext, fetch } = {}) {
   select.value = select.options.find(option => option.selected).value;
   Object.defineProperty(select, 'selectedIndex', { get: () => select.options.findIndex(option => option.value === select.value) });
   Object.defineProperty(select, 'selectedOptions', { get: () => [select.options[select.selectedIndex]] });
+  let clockWrites = 0;
+  let clockText = '';
+  Object.defineProperty(get('time'), 'textContent', {
+    get: () => clockText,
+    set: value => { clockText = value; clockWrites++; },
+  });
   const context = vm.createContext({
     document, Event, Date: { now: () => now },
     ...(AudioContext ? { AudioContext } : {}),
     ...(fetch ? { fetch } : {}),
-    setInterval(fn) { tick = fn; },
+    setTimeout(fn, delay) {
+      pendingTick = { fn, at: now + delay, id: ++timerId };
+      return timerId;
+    },
+    clearTimeout(id) { if (pendingTick?.id === id) pendingTick = null; },
   });
   for (const file of ['timer.js', 'cycle.js', 'script.js']) {
     vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
@@ -77,7 +88,19 @@ function app({ AudioContext, fetch } = {}) {
     event(get('profile-trigger'), 'click');
     event(get('profile-options').children[index], 'click');
   };
-  return { get, document, event, enter, choose, advance(ms) { now += ms; tick(); } };
+  return {
+    get, document, event, enter, choose,
+    clockWrites: () => clockWrites,
+    nextTickIn: () => pendingTick ? pendingTick.at - now : null,
+    advance(ms) {
+      now += ms;
+      if (pendingTick && pendingTick.at <= now) {
+        const callback = pendingTick.fn;
+        pendingTick = null;
+        callback();
+      }
+    },
+  };
 }
 
 test('main entry point references existing local scripts, styles and images', () => {
@@ -256,10 +279,10 @@ test('each phase plays its own completion sound once and both files are cached',
   const ui = app({
     AudioContext: audio.AudioContext,
     fetch(url) {
-      assert.ok(['assets/signal.mp3', 'assets/break-end.mp3'].includes(url));
+      assert.ok(['assets/focus-end.mp3', 'assets/break-end.mp3'].includes(url));
       assert.ok(fs.statSync(path.join(root, url)).size > 0);
       requests++;
-      const data = new Uint8Array([url === 'assets/signal.mp3' ? 1 : 2]);
+      const data = new Uint8Array([url === 'assets/focus-end.mp3' ? 1 : 2]);
       return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(data.buffer) });
     },
   });
@@ -316,5 +339,47 @@ test('a missing break sound falls back to the beep without replaying the focus s
   ui.advance(5 * 60_000);
   assert.deepEqual(audio.calls.sources, [1]);
   assert.equal(audio.calls.beeps, 1);
+  assert.equal(ui.get('setup').hidden, false);
+});
+
+test('the idle app schedules no polling and a running timer updates at second boundaries', () => {
+  const ui = app();
+  const idleWrites = ui.clockWrites();
+  assert.equal(ui.nextTickIn(), null);
+  ui.advance(60 * 60_000);
+  assert.equal(ui.clockWrites(), idleWrites);
+  ui.enter('Finish the draft');
+  ui.event(ui.get('play'), 'click');
+  assert.equal(ui.get('time').textContent, '25:00');
+  assert.equal(ui.nextTickIn(), 1000);
+  const startWrites = ui.clockWrites();
+  ui.advance(999);
+  assert.equal(ui.get('time').textContent, '25:00');
+  assert.equal(ui.clockWrites(), startWrites);
+  ui.advance(1);
+  assert.equal(ui.get('time').textContent, '24:59');
+  assert.equal(ui.clockWrites(), startWrites + 1);
+  assert.equal(ui.nextTickIn(), 1000);
+  ui.advance(30 * 60_000 - 1000);
+  assert.equal(ui.get('setup').hidden, false);
+  assert.equal(ui.nextTickIn(), null);
+});
+
+test('visibility updates preserve the clock display and align the next callback to the deadline', () => {
+  const ui = app();
+  ui.enter('Finish the draft');
+  ui.event(ui.get('play'), 'click');
+  const startWrites = ui.clockWrites();
+  ui.advance(250);
+  ui.event(ui.document, 'visibilitychange');
+  assert.equal(ui.clockWrites(), startWrites);
+  assert.equal(ui.nextTickIn(), 750);
+  ui.advance(750);
+  assert.equal(ui.get('time').textContent, '24:59');
+  ui.advance(25 * 60_000 - 1000);
+  assert.equal(ui.get('time').textContent, '05:00');
+  assert.equal(ui.nextTickIn(), 1000);
+  ui.advance(5 * 60_000);
+  assert.equal(ui.nextTickIn(), null);
   assert.equal(ui.get('setup').hidden, false);
 });

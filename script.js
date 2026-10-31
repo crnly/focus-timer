@@ -2,9 +2,11 @@
 const $ = (id) => document.getElementById(id);
 const cycle = new FocusCycle();
 let sessionGoal = '';
+let tickTimeout = null;
+let displayedClock = null;
 let alarmContext;
 const alarms = {
-  focus: { url: 'assets/signal.mp3', duration: 9.5 },
+  focus: { url: 'assets/focus-end.mp3', duration: 9.5 },
   break: { url: 'assets/break-end.mp3', duration: 2.6 },
 };
 
@@ -81,6 +83,8 @@ function formatTime(ms) {
 
 function renderClock() {
   if (!cycle.active) {
+    if (displayedClock === 'ready') return;
+    displayedClock = 'ready';
     $('time').textContent = '';
     $('time').setAttribute('aria-label', 'Remaining focus time');
     document.title = 'Focus Timer';
@@ -89,6 +93,9 @@ function renderClock() {
   const remaining = cycle.timer.remainingMs;
   const label = cycle.phase === 'focus' ? 'Focus' : 'Break';
   const time = formatTime(remaining);
+  const display = `${label}:${time}`;
+  if (display === displayedClock) return;
+  displayedClock = display;
   $('time').textContent = time;
   $('time').setAttribute('aria-label', `Remaining ${label.toLowerCase()} time: ${time}`);
   document.title = `${time} · ${label} · Focus Timer`;
@@ -115,6 +122,16 @@ function renderControls() {
   $('play').title = cycle.active ? (isBreak ? 'Break in progress' : 'Focus in progress') : 'Start focus';
   $('phase-status').textContent = cycle.notice;
   renderClock();
+  scheduleTick();
+}
+
+function scheduleTick() {
+  if (tickTimeout !== null) clearTimeout(tickTimeout);
+  tickTimeout = null;
+  if (!cycle.active) return;
+  // Wake at the next displayed second, while timestamps remain the source of truth.
+  const delay = Math.ceil(cycle.timer.remainingMs % 1000) || 1000;
+  tickTimeout = setTimeout(tick, Math.max(1, delay));
 }
 
 function handleTransition(transition) {
@@ -127,7 +144,10 @@ function handleTransition(transition) {
 function tick() {
   const transition = cycle.update();
   if (transition) handleTransition(transition);
-  else renderClock();
+  else {
+    renderClock();
+    scheduleTick();
+  }
 }
 
 $('play').addEventListener('click', () => {
@@ -274,6 +294,5 @@ goalInput.addEventListener('compositionend', constrainGoal);
 goalInput.addEventListener('input', constrainGoal);
 
 document.addEventListener('visibilitychange', tick);
-setInterval(tick, 200);
 renderControls();
 $('goal').focus({ preventScroll: true });
