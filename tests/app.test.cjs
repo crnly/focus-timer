@@ -226,15 +226,19 @@ test('a rejected audio unlock does not interrupt the timer or produce an unhandl
 });
 
 function sampleAudio() {
-  const calls = { samples: 0, beeps: 0, decodes: 0, durations: [] };
+  const calls = { samples: 0, beeps: 0, decodes: 0, durations: [], sources: [] };
   class AudioContext {
     state = 'running';
     currentTime = 0;
     destination = {};
     resume() { return Promise.resolve(); }
-    decodeAudioData() { calls.decodes++; return Promise.resolve({ duration: 9.7 }); }
+    decodeAudioData(data) {
+      calls.decodes++;
+      const source = new Uint8Array(data)[0];
+      return Promise.resolve({ duration: source === 1 ? 9.7 : 2.6, source });
+    }
     createBufferSource() {
-      return { connect() {}, disconnect() {}, start(when, offset, duration) { calls.samples++; calls.durations.push(duration); } };
+      return { connect() {}, disconnect() {}, start(when, offset, duration) { calls.samples++; calls.durations.push(duration); calls.sources.push(this.buffer.source); } };
     }
     createOscillator() {
       return { frequency: {}, connect() {}, disconnect() {}, start() { calls.beeps++; }, stop() {} };
@@ -246,37 +250,39 @@ function sampleAudio() {
   return { AudioContext, calls };
 }
 
-test('the local completion sound loads once and plays once at each phase boundary', async () => {
+test('each phase plays its own completion sound once and both files are cached', async () => {
   const audio = sampleAudio();
   let requests = 0;
   const ui = app({
     AudioContext: audio.AudioContext,
     fetch(url) {
-      assert.equal(url, 'assets/signal.mp3');
+      assert.ok(['assets/signal.mp3', 'assets/break-end.mp3'].includes(url));
       assert.ok(fs.statSync(path.join(root, url)).size > 0);
       requests++;
-      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+      const data = new Uint8Array([url === 'assets/signal.mp3' ? 1 : 2]);
+      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(data.buffer) });
     },
   });
   ui.enter('Finish the draft');
   ui.event(ui.get('play'), 'click');
   await new Promise(setImmediate);
   assert.equal(audio.calls.samples, 0);
-  assert.equal(requests, 1);
-  assert.equal(audio.calls.decodes, 1);
+  assert.equal(requests, 2);
+  assert.equal(audio.calls.decodes, 2);
   ui.advance(25 * 60_000);
   assert.equal(audio.calls.samples, 1);
   ui.advance(1_000);
   assert.equal(audio.calls.samples, 1);
   ui.advance(5 * 60_000);
   assert.equal(audio.calls.samples, 2);
-  assert.deepEqual(audio.calls.durations, [9.5, 9.5]);
+  assert.deepEqual(audio.calls.durations, [9.5, 2.6]);
+  assert.deepEqual(audio.calls.sources, [1, 2]);
   assert.equal(audio.calls.beeps, 0);
   ui.enter('A new goal');
   ui.event(ui.get('play'), 'click');
   await new Promise(setImmediate);
-  assert.equal(requests, 1);
-  assert.equal(audio.calls.decodes, 1);
+  assert.equal(requests, 2);
+  assert.equal(audio.calls.decodes, 2);
 });
 
 test('a failed sound download keeps the original beep and the full timer cycle working', async () => {
@@ -290,5 +296,25 @@ test('a failed sound download keeps the original beep and the full timer cycle w
   ui.advance(5 * 60_000);
   assert.equal(audio.calls.beeps, 2);
   assert.equal(audio.calls.samples, 0);
+  assert.equal(ui.get('setup').hidden, false);
+});
+
+test('a missing break sound falls back to the beep without replaying the focus sound', async () => {
+  const audio = sampleAudio();
+  const ui = app({
+    AudioContext: audio.AudioContext,
+    fetch(url) {
+      if (url === 'assets/break-end.mp3') return Promise.reject(new Error('Unavailable'));
+      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new Uint8Array([1]).buffer) });
+    },
+  });
+  ui.enter('Finish the draft');
+  ui.event(ui.get('play'), 'click');
+  await new Promise(setImmediate);
+  ui.advance(25 * 60_000);
+  assert.deepEqual(audio.calls.sources, [1]);
+  ui.advance(5 * 60_000);
+  assert.deepEqual(audio.calls.sources, [1]);
+  assert.equal(audio.calls.beeps, 1);
   assert.equal(ui.get('setup').hidden, false);
 });

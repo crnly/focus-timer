@@ -6,8 +6,8 @@ Ein ruhiger Fokus-Timer mit automatischer Pause, gebaut mit HTML, CSS und JavaSc
 
 Ziel eingeben, Fokus- und Pausendauer wählen und Play drücken.
 Während der Pause erscheinen die ursprünglichen Ziele unter dem Timer.
-Ein Signalton meldet das Ende jeder Phase. Danach startet der nächste
-Durchgang manuell.
+Nach dem Fokus erklingt ein Signalton, nach der Pause zwei Holzschläge. Der nächste
+Durchgang startet manuell.
 
 ## Lokal nutzen
 
