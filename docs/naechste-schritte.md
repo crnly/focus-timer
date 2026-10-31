@@ -1,6 +1,6 @@
 # Nächste Schritte des Fokus-Timers
 
-Stand: 30.10.2026. Die aktuelle Planung ersetzt frühere Oberflächenentscheidungen.
+Stand: 31.10.2026. Die aktuelle Planung ersetzt frühere Oberflächenentscheidungen.
 Das [ursprüngliche Konzept](projektkonzept.md) bleibt als historische Grundlage.
 
 ## Aktueller Umfang
@@ -24,11 +24,12 @@ Zyklus ist Play ausgeblendet und deaktiviert. Anhalten, Fortsetzen, vorzeitiges
 Beenden und Zurücksetzen gehören nicht zur Oberfläche.
 
 Notizen, Rückblick, Verlauf und Tabs gehören nicht zum aktuellen Umfang.
-Die Oberfläche verwendet die dunkle Portfolio-Gestaltung mit grünen Akzenten.
+Die Oberfläche verwendet die dunkle Portfolio-Gestaltung mit Arctic-Blue-Akzenten.
 Die gesamte aktuelle Timer-Oberfläche ist englischsprachig, einschließlich
 Fehlermeldungen, Tooltips und zugänglichen Beschriftungen.
 Die Pine-Tree-Landschaft 05 liegt innerhalb des Timer-Rechtecks; die Hauptseite
-verwendet den bisherigen dunklen Grundton des Rechtecks.
+verwendet den dunklen Portfolio-Grundton `#0d1117`. Die Landschaft wird per CSS
+an die kühle Farbpalette angepasst; die Bilddateien bleiben unverändert.
 Die eigenständigen Pine-Tree-Landschaften liegen in der gemeinsamen Sammlung.
 
 ## Bedienung und Zuverlässigkeit

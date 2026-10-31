@@ -19,7 +19,7 @@ Weitere Zeitprofile: **15 + 5, 20 + 5, 30 + 10, 35 + 10, 40 + 10, 50 + 10**.
 
 Die Oberfläche ist englischsprachig. Es gibt keine Pause-, Reset- oder
 Skip-Buttons, keine Konten und keinen Sitzungsverlauf. Das ruhige Design
-verbindet dunkles Grün, eine feste abgerundete Kontur und ASCII-Kiefern.
+verbindet Arctic Blue auf dunklem Hintergrund, eine feste abgerundete Kontur und ASCII-Kiefern.
 
 Am Ende der Fokusphase und der Pause erklingt jeweils ein kurzer, leiser Piepton.
 Er wird direkt per Web Audio erzeugt; Audiodateien und Bibliotheken sind nicht nötig.

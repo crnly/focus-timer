@@ -12,10 +12,13 @@ rectangle. `object-fit: contain` and bottom alignment preserve all tree groups
 instead of cropping away the outer ones. The input sits higher in the card,
 leaving the more prominent trees visible below it. Both phases use this same
 placement to avoid a background jump when focus starts. A subtle dark overlay
-helps maintain readability; a fixed sage outline frames the card.
+helps maintain readability; a fixed Arctic Blue outline frames the card.
+CSS luminosity blending adapts the original green image to the cool blue
+background while preserving its brightness and composition. The image files
+remain unchanged.
 The portrait image remains available as a source asset but is not currently loaded.
 
-The page uses the rectangle's previous dark base colour (`#0e1611`). There are
+The page and rectangle use the portfolio's dark base colour (`#0d1117`). There are
 no pine trees outside the rectangle.
 
 The landscape is a new arrangement of fragments from our existing ASCII

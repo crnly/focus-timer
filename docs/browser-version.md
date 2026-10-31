@@ -18,7 +18,7 @@ Then open the [local preview](http://127.0.0.1:4173).
 
 1. Enter a goal beneath “Set your goal and choose your focus + break times.”
    The text field has no placeholder. It receives focus on opening and after
-   each completed cycle, so you can type immediately. A blinking muted-green block
+   each completed cycle, so you can type immediately. A blinking muted-blue block
    marks the starting position while the focused field is empty; once you type,
    the native text caret takes over in the same colour as the text and instruction.
    The block is steady when reduced
@@ -63,10 +63,10 @@ unavailable or suspended by the browser, the timer continues without the sound.
 
 ## Design
 
-The design follows the portfolio: dark green, sage accents (`#9bbda2`), system
+The design follows the portfolio: dark blue-black (`#0d1117`), Arctic Blue accents (`#8ea8ba`), system
 fonts, monospace details and fine outlines. Pine Trees landscape 05 appears
-inside the timer rectangle. The page uses the rectangle's previous dark base
-colour (`#0e1611`). See [assets/README.md](../assets/README.md) for image provenance.
+inside the timer rectangle, with CSS luminosity blending to match the cool palette.
+The page uses the same dark base colour. See [assets/README.md](../assets/README.md) for image provenance.
 No remote images or fonts are required.
 
 The full landscape is scaled to the bottom of the card. The goal input is
