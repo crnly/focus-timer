@@ -15,4 +15,3 @@ Durchgang manuell.
 
 Ziele bleiben nur im geöffneten Tab und werden nach der Pause verworfen.
 Neuladen oder Schließen beendet die Sitzung.
-
