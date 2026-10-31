@@ -1,17 +1,17 @@
-# Fokus-Timer
+# Focus Timer
 
-Ein ruhiger Fokus-Timer mit automatischer Pause, gebaut mit HTML, CSS und JavaScript.
+A calm focus timer with automatic breaks, built with HTML, CSS, and JavaScript.
 
-**[Im Browser öffnen](https://crnly.github.io/fokus-timer/)**
+**[Open the timer](https://crnly.github.io/fokus-timer/)**
 
-Ziel eingeben, Fokus- und Pausendauer wählen und Play drücken.
-Während der Pause erscheinen die ursprünglichen Ziele unter dem Timer.
-Nach dem Fokus erklingt ein Signalton, nach der Pause zwei Holzschläge. Der nächste
-Durchgang startet manuell.
+Set your goals, choose your focus and break times, and press Play.
+During the break, your original goals appear below the timer.
+A completion sound marks the end of focus; two wooden clacks mark the end of the break.
+Start the next session manually.
 
-## Lokal nutzen
+## Run locally
 
-`index.html` im Browser öffnen. Keine Installation und kein Backend nötig.
+Open `index.html` in your browser. No installation or backend is required.
 
-Ziele bleiben nur im geöffneten Tab und werden nach der Pause verworfen.
-Neuladen oder Schließen beendet die Sitzung.
+Goals stay only in the open tab and are discarded after the break.
+Reloading or closing the page ends the session.
