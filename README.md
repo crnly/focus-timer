@@ -2,7 +2,7 @@
 
 A calm focus timer with automatic breaks, built with HTML, CSS, and JavaScript.
 
-**[Open the timer](https://crnly.github.io/fokus-timer/)**
+**[Open the timer](https://crnly.github.io/focus-timer/)**
 
 Set your goals, choose your focus and break times, and press Play.
 During the break, your original goals appear below the timer.
