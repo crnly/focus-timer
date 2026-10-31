@@ -3,6 +3,8 @@ const $ = (id) => document.getElementById(id);
 const cycle = new FocusCycle();
 let sessionGoal = '';
 let alarmContext;
+let alarmBuffer;
+let alarmLoading;
 
 function enableAlarm() {
   try {
@@ -11,6 +13,17 @@ function enableAlarm() {
     if (!alarmContext || alarmContext.state === 'closed') alarmContext = new Audio();
     // Unlock audio during the user's Play click, without delaying the timer.
     alarmContext.resume().catch(() => {});
+    // Completion sound: https://www.youtube.com/watch?v=u7Djn-G6uSk
+    if (!alarmLoading && globalThis.fetch) {
+      alarmLoading = fetch('assets/signal.mp3')
+        .then((response) => {
+          if (!response.ok) throw new Error('Sound unavailable');
+          return response.arrayBuffer();
+        })
+        .then((data) => alarmContext.decodeAudioData(data))
+        .then((buffer) => { alarmBuffer = buffer; })
+        .catch(() => { alarmLoading = null; });
+    }
   } catch {
     // Audio availability must never prevent a focus session from starting.
   }
@@ -19,6 +32,18 @@ function enableAlarm() {
 function playAlarm() {
   if (!alarmContext || alarmContext.state !== 'running') return;
   try {
+    if (alarmBuffer) {
+      const sound = alarmContext.createBufferSource();
+      const volume = alarmContext.createGain();
+      sound.buffer = alarmBuffer;
+      volume.gain.value = 0.5;
+      sound.connect(volume);
+      volume.connect(alarmContext.destination);
+      sound.onended = () => { sound.disconnect(); volume.disconnect(); };
+      sound.start();
+      return;
+    }
+    // Keep the simple beep if the file could not be loaded or decoded.
     const tone = alarmContext.createOscillator();
     const volume = alarmContext.createGain();
     const now = alarmContext.currentTime;

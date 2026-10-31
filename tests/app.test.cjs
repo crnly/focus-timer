@@ -10,7 +10,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 // A small DOM adapter exercises the real UI script and clock together.
 // Layout, native browser input and rendered line wrapping still need browser QA.
-function app({ AudioContext } = {}) {
+function app({ AudioContext, fetch } = {}) {
   let now = 0;
   let tick;
   let document;
@@ -56,6 +56,7 @@ function app({ AudioContext } = {}) {
   const context = vm.createContext({
     document, Event, Date: { now: () => now },
     ...(AudioContext ? { AudioContext } : {}),
+    ...(fetch ? { fetch } : {}),
     setInterval(fn) { tick = fn; },
   });
   for (const file of ['timer.js', 'cycle.js', 'script.js']) {
@@ -222,4 +223,71 @@ test('a rejected audio unlock does not interrupt the timer or produce an unhandl
   ui.advance(5 * 60_000);
   assert.equal(ui.get('setup').hidden, false);
   assert.equal(ui.get('play').disabled, true);
+});
+
+function sampleAudio() {
+  const calls = { samples: 0, beeps: 0, decodes: 0 };
+  class AudioContext {
+    state = 'running';
+    currentTime = 0;
+    destination = {};
+    resume() { return Promise.resolve(); }
+    decodeAudioData() { calls.decodes++; return Promise.resolve({ duration: 9.7 }); }
+    createBufferSource() {
+      return { connect() {}, disconnect() {}, start() { calls.samples++; } };
+    }
+    createOscillator() {
+      return { frequency: {}, connect() {}, disconnect() {}, start() { calls.beeps++; }, stop() {} };
+    }
+    createGain() {
+      return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {} }, connect() {}, disconnect() {} };
+    }
+  }
+  return { AudioContext, calls };
+}
+
+test('the local completion sound loads once and plays once at each phase boundary', async () => {
+  const audio = sampleAudio();
+  let requests = 0;
+  const ui = app({
+    AudioContext: audio.AudioContext,
+    fetch(url) {
+      assert.equal(url, 'assets/signal.mp3');
+      assert.ok(fs.statSync(path.join(root, url)).size > 0);
+      requests++;
+      return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+    },
+  });
+  ui.enter('Finish the draft');
+  ui.event(ui.get('play'), 'click');
+  await new Promise(setImmediate);
+  assert.equal(audio.calls.samples, 0);
+  assert.equal(requests, 1);
+  assert.equal(audio.calls.decodes, 1);
+  ui.advance(25 * 60_000);
+  assert.equal(audio.calls.samples, 1);
+  ui.advance(1_000);
+  assert.equal(audio.calls.samples, 1);
+  ui.advance(5 * 60_000);
+  assert.equal(audio.calls.samples, 2);
+  assert.equal(audio.calls.beeps, 0);
+  ui.enter('A new goal');
+  ui.event(ui.get('play'), 'click');
+  await new Promise(setImmediate);
+  assert.equal(requests, 1);
+  assert.equal(audio.calls.decodes, 1);
+});
+
+test('a failed sound download keeps the original beep and the full timer cycle working', async () => {
+  const audio = sampleAudio();
+  const ui = app({ AudioContext: audio.AudioContext, fetch: () => Promise.reject(new Error('Offline')) });
+  ui.enter('Finish the draft');
+  ui.event(ui.get('play'), 'click');
+  await new Promise(setImmediate);
+  ui.advance(25 * 60_000);
+  assert.equal(audio.calls.beeps, 1);
+  ui.advance(5 * 60_000);
+  assert.equal(audio.calls.beeps, 2);
+  assert.equal(audio.calls.samples, 0);
+  assert.equal(ui.get('setup').hidden, false);
 });
