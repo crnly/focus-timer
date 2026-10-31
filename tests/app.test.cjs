@@ -226,7 +226,7 @@ test('a rejected audio unlock does not interrupt the timer or produce an unhandl
 });
 
 function sampleAudio() {
-  const calls = { samples: 0, beeps: 0, decodes: 0 };
+  const calls = { samples: 0, beeps: 0, decodes: 0, durations: [] };
   class AudioContext {
     state = 'running';
     currentTime = 0;
@@ -234,7 +234,7 @@ function sampleAudio() {
     resume() { return Promise.resolve(); }
     decodeAudioData() { calls.decodes++; return Promise.resolve({ duration: 9.7 }); }
     createBufferSource() {
-      return { connect() {}, disconnect() {}, start() { calls.samples++; } };
+      return { connect() {}, disconnect() {}, start(when, offset, duration) { calls.samples++; calls.durations.push(duration); } };
     }
     createOscillator() {
       return { frequency: {}, connect() {}, disconnect() {}, start() { calls.beeps++; }, stop() {} };
@@ -270,6 +270,7 @@ test('the local completion sound loads once and plays once at each phase boundar
   assert.equal(audio.calls.samples, 1);
   ui.advance(5 * 60_000);
   assert.equal(audio.calls.samples, 2);
+  assert.deepEqual(audio.calls.durations, [9.5, 9.5]);
   assert.equal(audio.calls.beeps, 0);
   ui.enter('A new goal');
   ui.event(ui.get('play'), 'click');

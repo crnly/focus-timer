@@ -40,7 +40,8 @@ function playAlarm() {
       sound.connect(volume);
       volume.connect(alarmContext.destination);
       sound.onended = () => { sound.disconnect(); volume.disconnect(); };
-      sound.start();
+      // Play only the approved excerpt, ending at 9.5 seconds.
+      sound.start(alarmContext.currentTime, 0, 9.5);
       return;
     }
     // Keep the simple beep if the file could not be loaded or decoded.
