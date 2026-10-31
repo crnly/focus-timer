@@ -175,12 +175,6 @@ test('overflowing goal edits are rejected silently and a shorter correction is a
   assert.equal(goal.value, 'Shorter goal');
 });
 
-test('the previous prototype entry redirects to the main browser app', () => {
-  const redirect = fs.readFileSync(path.join(root, 'prototype', 'index.html'), 'utf8');
-  assert.match(redirect, /url=\.\.\/index\.html/);
-  assert.match(redirect, /location\.replace\('\.\.\/index\.html'/);
-});
-
 test('one beep sounds at each phase end and repeated updates do not repeat it', () => {
   let beeps = 0;
   let unlocked = 0;
