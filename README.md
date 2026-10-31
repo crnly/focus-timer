@@ -16,12 +16,3 @@ Durchgang manuell.
 Ziele bleiben nur im geöffneten Tab und werden nach der Pause verworfen.
 Neuladen oder Schließen beendet die Sitzung.
 
-## Tests
-
-Mit Node.js 24:
-
-```sh
-node --test tests/*.test.cjs
-```
-
-Entwickelt mit Unterstützung von Claude Code und OpenAI Codex.
