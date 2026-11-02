@@ -1,0 +1,17 @@
+vars: {
+  d2-config: {
+    theme-id: 101
+    sketch: true
+    pad: 24
+  }
+}
+
+direction: right
+
+setup: "Set goals\nChoose focus + break times"
+focus: "Focus\nGoals hidden"
+rest: "Break\nOriginal goals visible"
+
+setup -> focus: Play
+focus -> rest: "Focus ends\nCompletion sound"
+rest -> setup: "Break ends\nTwo wooden clacks\nGoals cleared"

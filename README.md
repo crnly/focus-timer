@@ -9,6 +9,12 @@ During the break, your original goals appear below the timer.
 A completion sound marks the end of focus; two wooden clacks mark the end of the break.
 Start the next session manually.
 
+## Session flow
+
+![Session flow: set goals and times, press Play to focus, then take an automatic break showing the original goals. After the break, goals are cleared and the timer returns to setup.](docs/flow.svg)
+
+[D2 source](docs/flow.d2) · Theme 101, sketch mode. Regenerate with `d2 docs/flow.d2 docs/flow.svg`.
+
 ## Run locally
 
 Open `index.html` in your browser. No installation or backend is required.
