@@ -15,7 +15,8 @@ Ein ruhiger Browser-Timer für konzentriertes Arbeiten: Ziele festhalten, Fokus-
 - Nach der Pause mit leerer Zieleingabe zurückkehren und die nächste Sitzung selbst starten.
 - Ohne Konto arbeiten: Ziele bleiben nur im offenen Tab. Neuladen oder Schließen beendet die Sitzung.
 
-## Tech Stack
+<details>
+<summary><strong>Tech Stack</strong></summary>
 
 | Bereich | Technologie | Verwendung |
 | --- | --- | --- |
@@ -26,7 +27,10 @@ Ein ruhiger Browser-Timer für konzentriertes Arbeiten: Ziele festhalten, Fokus-
 | Prüfung und Hosting | GitHub Actions, GitHub Pages | Automatische Syntaxprüfung und Tests; statische Veröffentlichung aus `main` |
 | Dokumentation | D2, Mermaid | Ablaufdiagramm und vereinfachter Architekturüberblick |
 
-### Projektstruktur
+</details>
+
+<details>
+<summary><strong>Projektstruktur</strong></summary>
 
 ```text
 focus-timer/
@@ -53,6 +57,8 @@ focus-timer/
 ├── style.css               # Layout und Darstellung
 └── timer.js                # Countdown unabhängig von der Oberfläche
 ```
+
+</details>
 
 ## Getting Started
 
